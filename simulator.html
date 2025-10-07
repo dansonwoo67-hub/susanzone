@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sales Commission Calculator</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.8; padding: 20px; }
+    h1 { color: darkblue; }
+    h2 { color: green; font-weight: bold; }
+    .result { color: green; font-weight: bold; }
+    .highlight { color: red; font-weight: bold; }
+    .hidden { display: none; }
+    .disclaimer { 
+      background-color: #fff3cd; 
+      border: 2px solid #ffc107; 
+      padding: 15px; 
+      margin: 20px 0; 
+      border-radius: 5px;
+      color: #856404;
+      font-weight: bold;
+    }
+    .warning { 
+      background-color: #f8d7da; 
+      border: 2px solid #dc3545; 
+      padding: 10px; 
+      margin: 10px 0; 
+      border-radius: 5px;
+      color: #721c24;
+      font-weight: bold;
+      text-align: center;
+    }
+    input, button { margin: 5px; padding: 5px; }
+    .dream-text { 
+      background-color: #f0f8ff; 
+      padding: 15px; 
+      border-left: 4px solid #007bff; 
+      margin: 10px 0; 
+      line-height: 1.6;
+    }
+    .arabic-text {
+      color: #d4af37;
+      font-weight: bold;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="disclaimer">
+    ⚠️ <strong>IMPORTANT DISCLAIMER:</strong><br>
+    This is a SIMULATION TOOL ONLY for educational and planning purposes. 
+    All calculations are estimates and DO NOT represent actual company policies, 
+    real commission rates, or guaranteed payments. 
+    For official commission information, please consult your manager or HR department.
+  </div>
+
+  <div id="loginBox">
+    <h2>Login Required</h2>
+    <p>Username: <input type="text" id="username"></p>
+    <p>Password: <input type="password" id="password"></p>
+    <button onclick="login()">Login</button>
+    <p id="loginError" style="color:red;"></p>
+  </div>
+
+  <div id="content" class="hidden">
+    <h1>Sales Commission Calculator - SIMULATION ONLY</h1>
+    
+    <div class="warning">
+      🚨 THIS IS A SIMULATION - NOT REAL COMMISSION DATA 🚨
+    </div>
+
+    <h2>Note: All calculations are hypothetical examples for reference only!</h2>
+
+    <h2>📊 Current Commission Simulation (EXAMPLE ONLY)</h2>
+    <div class="warning">These numbers are NOT your actual commission!</div>
+    <p>Individual Net Contract Count: <input type="number" id="personalContracts"></p>
+    <p>Actual Revenue (USD): <input type="number" id="actualCash"></p>
+    <button onclick="calculateCurrent()">Calculate SIMULATED Commission</button>
+    <div id="currentResult"></div>
+
+    <h2>🎯 Target Commission Simulation (HYPOTHETICAL)</h2>
+    <div class="warning">This is practice calculation - not company policy!</div>
+    <p>Package A (75 minutes): <input type="number" id="pk75" value="0"></p>
+    <p>Package B (90 minutes): <input type="number" id="pk90" value="0"></p>
+    <p>Package C (105 minutes): <input type="number" id="pk105" value="0"></p>
+    <p>Package D (150 minutes): <input type="number" id="pk150" value="0"></p>
+    <p>Package E (225 minutes): <input type="number" id="pk225" value="0"></p>
+    <p>Package F (300 minutes): <input type="number" id="pk300" value="0"></p>
+    <p>Package G (375 minutes): <input type="number" id="pk375" value="0"></p>
+    <button onclick="calculateTarget()">Calculate EXAMPLE Target</button>
+    <div id="targetResult"></div>
+
+    <h2>💭 Dream Commission Simulation (FANTASY PLANNING)</h2>
+    <div class="warning">This is motivational planning tool - not real calculations!</div>
+    <p>Enter your dream monthly commission (EGP): <input type="number" id="dreamAmount"></p>
+    <button onclick="calculateDream()">Calculate HYPOTHETICAL Dream Path</button>
+    <div id="dreamResult"></div>
+
+    <div class="disclaimer">
+      <strong>FINAL REMINDER:</strong><br>
+      ✅ This tool is for SIMULATION and MOTIVATION only<br>
+      ✅ All numbers are EXAMPLES and NOT GUARANTEES<br>
+      ✅ Real commission depends on actual company policies<br>
+      ✅ Always verify with your manager for official information<br>
+      ❌ DO NOT use these calculations for financial decisions
+    </div>
+
+    <p style="text-align:center; color:#888; font-size:12px;">Designed by Danson Wu · EGSS-07</p>
+  </div>
+
+  <script>
+    function login() {
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
+      if (user === "EGEA" && pass === "unstopable") {
+        document.getElementById("loginBox").classList.add("hidden");
+        document.getElementById("content").classList.remove("hidden");
+        alert("⚠️ REMINDER: This is a SIMULATION tool only. All calculations are examples, not real commission data!");
+      } else {
+        document.getElementById("loginError").innerText = "Wrong username or password!";
+      }
+    }
+
+    const exchangeRate = 48.22;
+
+    const commissionTiers = [
+      { contracts: 0, rate: 0.000 },
+      { contracts: 4, rate: 0.010 },
+      { contracts: 7, rate: 0.015 },
+      { contracts: 10, rate: 0.020 },
+      { contracts: 15, rate: 0.025 },
+      { contracts: 20, rate: 0.030 },
+      { contracts: 25, rate: 0.035 },
+      { contracts: 30, rate: 0.040 },
+      { contracts: 40, rate: 0.050 }
+    ];
+
+    const packagePrices = {
+      75: 660, 90: 720, 105: 800, 150: 1020, 225: 1460, 300: 1820, 375: 2080
+    };
+
+    function getRateByContracts(n) {
+      let rate = 0;
+      for (let i = 0; i < commissionTiers.length; i++) {
+        if (n >= commissionTiers[i].contracts) rate = commissionTiers[i].rate;
+      }
+      return rate;
+    }
+
+    function getNextThreshold(n) {
+      for (let i = 0; i < commissionTiers.length; i++) {
+        if (commissionTiers[i].contracts > n) return commissionTiers[i].contracts;
+      }
+      return null;
+    }
+
+    function calculateCurrent() {
+      const contracts = parseInt(document.getElementById("personalContracts").value);
+      const cash = parseFloat(document.getElementById("actualCash").value);
+      if (isNaN(contracts) || isNaN(cash)) {
+        alert("Please enter both values");
+        return;
+      }
+      
+      const rate = getRateByContracts(contracts);
+      const commission = cash * rate * exchangeRate;
+
+      const next = getNextThreshold(contracts);
+      let nextMsg = "";
+      if (next) {
+        const need = next - contracts;
+        const futureRate = getRateByContracts(next);
+        const futureCommission = cash * futureRate * exchangeRate;
+        nextMsg = `<p class="result">SIMULATION: If you get ${need} more contracts (total ${next}), commission rate becomes ${(futureRate * 100).toFixed(1)}%, estimated commission: <span class="highlight">${futureCommission.toFixed(2)} EGP</span></p>`;
+      }
+
+      document.getElementById("currentResult").innerHTML = `
+        <div class="warning">⚠️ SIMULATION RESULTS - NOT REAL COMMISSION ⚠️</div>
+        <p class="result">Individual Net Contract Count: <span class="highlight">${contracts}</span></p>
+        <p class="result">Simulated commission rate: <span class="highlight">${(rate * 100).toFixed(1)}%</span></p>
+        <p class="result">EXAMPLE commission: <span class="highlight">${commission.toFixed(2)} EGP</span></p>
+        ${nextMsg}
+        <p style="color: red; font-size: 12px;">*This is practice calculation only</p>
+      `;
+    }
+
+    function calculateTarget() {
+      const packages = [75, 90, 105, 150, 225, 300, 375];
+      let contracts = 0, revenue = 0;
+      packages.forEach(pkg => {
+        const qty = parseInt(document.getElementById("pk" + pkg).value) || 0;
+        contracts += qty;
+        revenue += qty * packagePrices[pkg];
+      });
+      const rate = getRateByContracts(contracts);
+      const commission = revenue * rate * exchangeRate;
+
+      document.getElementById("targetResult").innerHTML = `
+        <div class="warning">⚠️ HYPOTHETICAL CALCULATION ONLY ⚠️</div>
+        <p class="result">Simulated total contracts: <span class="highlight">${contracts}</span></p>
+        <p class="result">Example commission rate: <span class="highlight">${(rate * 100).toFixed(1)}%</span></p>
+        <p class="result">THEORETICAL commission: <span class="highlight">${commission.toFixed(2)} EGP</span></p>
+        <p style="color: red; font-size: 12px;">*For planning purposes only - not actual policy</p>
+      `;
+    }
+
+    function calculateDream() {
+      const dreamAmount = parseFloat(document.getElementById("dreamAmount").value);
+      if (isNaN(dreamAmount) || dreamAmount <= 0) {
+        alert("Please enter your dream commission amount");
+        return;
+      }
+
+      const dreamUSD = dreamAmount / exchangeRate;
+      const avgRate = 0.035;
+      const neededRevenue = dreamUSD / avgRate;
+      
+      const pk300Individual = Math.ceil(neededRevenue * 0.4 / packagePrices[300]);
+      const pk150Individual = Math.ceil(neededRevenue * 0.3 / packagePrices[150]);
+      const pk225Family = Math.ceil(neededRevenue * 0.2 / (packagePrices[225] * 3));
+      const pk150Family = Math.ceil(neededRevenue * 0.1 / (packagePrices[150] * 3));
+      const totalDeals = pk300Individual + pk150Individual + pk225Family + pk150Family;
+
+      const conversionRate = 0.20;
+      const callsPerDeal = 4;
+      const workDays = 26;
+      const totalConnectedCalls = totalDeals * callsPerDeal;
+      const dailyConnectedCalls = Math.ceil(totalConnectedCalls / workDays);
+      const adjustedDailyCalls = Math.min(Math.max(dailyConnectedCalls, 30), 60);
+
+      const total2Years = dreamAmount * 24;
+      const cairoPropertyValue = total2Years / 200000;
+
+      document.getElementById("dreamResult").innerHTML = `
+        <div class="warning">⚠️ MOTIVATIONAL SIMULATION - NOT REAL PROJECTION ⚠️</div>
+        <div class="dream-text">
+          <p><strong>💰 To achieve your dream monthly commission of ${dreamAmount.toLocaleString()} EGP, you could sell:</strong></p>
+          <p>• <span class="highlight">${pk300Individual}</span> individual 300-minute packages (renewal)</p>
+          <p>• <span class="highlight">${pk150Individual}</span> individual 150-minute packages (renewal)</p>
+          <p>• Equivalent to <span class="highlight">${pk225Family}</span> family packages (225×3) and <span class="highlight">${pk150Family}</span> family packages (150×3)</p>
+        </div>
+        
+        <div class="dream-text">
+          <p><strong>🏆 <span class="arabic-text">تعرف إيه؟</span> (Do you know what?) If you work consistently for 2 years, you could save <span class="highlight">${total2Years.toLocaleString()} EGP!</span></strong></p>
+          <p><span class="arabic-text">يا سلام!</span> That's equivalent to owning <span class="highlight">${cairoPropertyValue.toFixed(1)}</span> property units in Cairo!</p>
+        </div>
+
+        <div class="dream-text">
+          <p><strong>📞 Valid Call & Duration Target Analysis:</strong></p>
+          <p>• Monthly target: <span class="highlight">${totalDeals}</span> deals</p>
+          <p>• Based on 20% conversion rate, average 4 valid calls per deal</p>
+          <p>• <strong>Daily target: <span class="highlight">${adjustedDailyCalls}</span> valid calls and proper duration</strong></p>
+          <p class="arabic-text">يلا بينا! إنت قدها! <span style="color: #007bff;">(Let's go! You can do it!)</span></p>
+          <p style="color: #007bff;">💪 <span class="arabic-text">ربنا معاك</span> - Stay focused, your dreams are ahead!</p>
+        </div>
+        
+        <p style="color: red; font-size: 12px;">*This is fantasy planning - actual results depend on real company policies</p>
+      `;
+    }
+  </script>
+</body>
+</html>
